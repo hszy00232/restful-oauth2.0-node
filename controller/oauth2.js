@@ -11,11 +11,13 @@ var config = require('../config/database');
 // 创建一个OAuth2.0 server
 var server = oauth2orize.createServer();
 
-// 注册 serializeClient 方法
+// 注册 序列化 serializeClient 方法
+// 当client重定向用户到用户授权接口，授权交易被启动，为完成这个交易，用户必做批准授权请求
+// 因为这可能涉及多个HTTP请求/响应交换，交易需要存储的会话中
 server.serializeClient(function(client, callback) {
     return callback(null, client._id);
 });
-// 注册 deserializeClient 方法
+// 注册 反序列化 deserializeClient 方法
 server.deserializeClient(function(id, callback) {
     Client.findOne({ _id: id }, function(err, client) {
         if (err) {
@@ -25,7 +27,7 @@ server.deserializeClient(function(id, callback) {
     })
 });
 
-// 注册 授予授权码
+// 注册 授予授权码模式
 server.grant(oauth2orize.grant.code(function(client, redirectUri, user, ares, callback) {
     console.log("code oauth2orize");
     console.log(client);
@@ -44,6 +46,7 @@ server.grant(oauth2orize.grant.code(function(client, redirectUri, user, ares, ca
     });
 }));
 
+// 使用code交换token
 server.exchange(oauth2orize.exchange.code(function(client, code, redirectUri, callback) {
     console.log("exchange oauth2orize");
     console.log(client);
@@ -52,7 +55,7 @@ server.exchange(oauth2orize.exchange.code(function(client, code, redirectUri, ca
         if (err) {
             return callback(err);
         }
-        if (authCode === undefined) {
+        if (authCode === null) {
             return callback(null, false);
         }
         if (client._id.toString() !== authCode.clientId) {
@@ -86,7 +89,7 @@ server.exchange(oauth2orize.exchange.code(function(client, code, redirectUri, ca
 }))
 
 
-
+// 初始化一个新的授权交易，找到要访问用户账号的客户端后渲染授权页面
 exports.authorization = [
     server.authorization(function(clientId, redirectUri, callback) {
         console.log(clientId);
@@ -102,18 +105,20 @@ exports.authorization = [
         console.log(req.oauth2);
         res.render('dialog', {
             transactionID: req.oauth2.transactionID,
-            user: config.userid,
+            user: req.user,
             client: req.oauth2.client
         });
     }
 ]
 
+// 用户批准或拒绝后的处理，调用server.grant处理提交的数据
 exports.decision = [
     server.decision()
 ]
 
+// 通过用户授权后得到code
 exports.token = [
-    server.token(),
+    server.token(), // 调用 server.exchange
     server.errorHandler()
 ]
 

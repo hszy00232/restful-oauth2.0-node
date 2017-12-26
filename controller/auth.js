@@ -1,3 +1,5 @@
+// 管理api接口的认证
+// passport-http 基本认证策略BasicStrategy
 var passport = require('passport');
 var BasicStrategy = require('passport-http').BasicStrategy;
 var BearerStrategy = require('passport-http-bearer').Strategy;
@@ -6,6 +8,7 @@ var User = require('../models/user');
 var Client = require('../models/client');
 var Token = require('../models/token');
 
+// 用于认证用户
 passport.use("basic", new BasicStrategy(
     function(username, password, done) {
         console.log('basic authentication');
@@ -32,7 +35,11 @@ passport.use("basic", new BasicStrategy(
     }
 ));
 
+// 用于认证client，验证client的请求
 passport.use('client-basic', new BasicStrategy(
+
+    // username指clientId
+    // password指clientSecret
     function(username, password, done) {
         console.log('client-basic authentication');
         console.log(username);
@@ -51,6 +58,7 @@ passport.use('client-basic', new BasicStrategy(
     }
 ))
 
+// 使用access tokens进行身份验证
 passport.use(new BearerStrategy(
     function(accessToken, done) {
         console.log('Bearer authentication');
@@ -78,7 +86,7 @@ passport.use(new BearerStrategy(
 ));
 // passport使用BasicStrategy认证用户，session为false,passport不存储用户的session,每次请求都需要用户名密码
 module.exports = {
-    isAuthenticated: passport.authenticate(['basic'], { session: false }),
+    isAuthenticated: passport.authenticate(['basic', 'bearer'], { session: false }),
     isClientAuthenticated: passport.authenticate('client-basic', { session: false }),
     isBeareAuthenticated: passport.authenticate('bearer', { session: false })
 };

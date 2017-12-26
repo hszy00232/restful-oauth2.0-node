@@ -8,6 +8,7 @@ var session = require('express-session');
 var petController = require('./controller/pet');
 var userController = require('./controller/user');
 var authController = require('./controller/auth');
+
 var clientController = require('./controller/client');
 var oauth2Controller = require('./controller/oauth2');
 
@@ -63,29 +64,40 @@ app.use('/api', router);
 router.route('/authenticate')
     .post(userController.authenticate);
 
+// 使用BasicStrategy 
+
 router.route('/pets')
-    .post(authController.isBeareAuthenticated, petController.postPets)
-    .get(authController.isBeareAuthenticated, petController.getPets);
+    .post(authController.isAuthenticated, petController.postPets)
+    .get(authController.isAuthenticated, petController.getPets);
 
 router.route('/pets/:pet_id')
-    .get(authController.isBeareAuthenticated, petController.getPet)
-    .put(authController.isBeareAuthenticated, petController.updatePet)
-    .delete(authController.isBeareAuthenticated, petController.deletePet);
+    .get(authController.isAuthenticated, petController.getPet)
+    .put(authController.isAuthenticated, petController.updatePet)
+    .delete(authController.isAuthenticated, petController.deletePet);
+
+// router.route('/pets')
+//     .post(authController.isBeareAuthenticated, petController.postPets)
+//     .get(authController.isBeareAuthenticated, petController.getPets);
+
+// router.route('/pets/:pet_id')
+//     .get(authController.isBeareAuthenticated, petController.getPet)
+//     .put(petController.updatePet)
+//     .delete(authController.isBeareAuthenticated, petController.deletePet);
 
 router.route('/users')
-    .post(authController.isAuthenticated, userController.postUsers)
-    .get(authController.isAuthenticated, userController.getUsers);
+    .post(userController.postUsers)
+    .get(authController.isAuthenticated, userController.getUsers); // 使用BasicStrategy 
 
 router.route('/clients')
     .post(authController.isAuthenticated, clientController.postClients)
     .get(authController.isAuthenticated, clientController.getClients);
 
 router.route('/oauth2/authorize')
-    .get(oauth2Controller.authorization)
-    .post(oauth2Controller.decision);
+    .get(authController.isAuthenticated, oauth2Controller.authorization) // 启动授权过程
+    .post(authController.isAuthenticated, oauth2Controller.decision); // 用户决定后的调用
 
 router.route('/oauth2/token')
-    .post(authController.isClientAuthenticated, oauth2Controller.token);
+    .post(authController.isClientAuthenticated, oauth2Controller.token); // 得到code后的调用
 
 app.listen(port, function() {
     console.log('server is running at http://localhost:3090');

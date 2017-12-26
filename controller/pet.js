@@ -5,6 +5,10 @@ var postPets = function(req, res) {
     pet.name = req.body.name;
     pet.type = req.body.type;
     pet.quantity = req.body.quantity;
+    pet.userId = req.user._id;
+
+    console.log(req.user)
+
     pet.save(function(err) {
         if (err) {
             res.json({ message: 'error', data: err });
@@ -15,7 +19,7 @@ var postPets = function(req, res) {
 };
 
 var getPets = function(req, res) {
-    Pet.find(function(err, pets) {
+    Pet.find({ userId: req.user._id }, function(err, pets) {
         if (err) {
             res.json({ message: 'error', data: err });
             return;
@@ -25,7 +29,7 @@ var getPets = function(req, res) {
 };
 
 var getPet = function(req, res) {
-    Pet.findById(req.params.pet_id, function(err, pet) {
+    Pet.findById({ userId: req.user._id, _id: req.params.pet_id }, function(err, pet) {
         if (err) {
             res.json({ message: 'error', data: err });
             return;
@@ -35,33 +39,47 @@ var getPet = function(req, res) {
 };
 
 var updatePet = function(req, res) {
-    Pet.findById(req.params.pet_id, function(err, pet) {
+    Pet.update({ userId: req.user._id, _id: req.params.pet_id }, { quantity: req.body.quantity }, function(err, num) {
         if (err) {
             res.json({ message: 'error', data: err });
-            return;
         }
-        pet.quantity = req.query.quantity;
+        res.json({ message: ' update' })
+    })
 
-        pet.save(function(err) {
-            if (err) {
-                res.json({ message: 'error', data: err });
-                return;
-            }
+    // Pet.findById(req.params.pet_id, function(err, pet) {
+    //     if (err) {
+    //         res.json({ message: 'error', data: err });
+    //         return;
+    //     }
+    //     pet.quantity = req.body.quantity;
 
-            res.json({ message: 'done', data: pet });
-        })
-    });
+    //     pet.save(function(err) {
+    //         if (err) {
+    //             res.json({ message: 'error', data: err });
+    //             return;
+    //         }
+
+    //         res.json({ message: 'done', data: pet });
+    //     })
+    // });
 };
 
 var deletePet = function(req, res) {
-    Pet.findByIdAndRemove(req.params.pet_id, function(err) {
+    Pet.remove({ userId: req.user._id, _id: req.params.pet_id }, function(err) {
         if (err) {
             res.json({ message: 'error', data: err });
-            return;
         }
-
-        res.json({ message: 'done', data: {} });
+        res.json({ message: 'pet remove!' })
     });
+
+    // Pet.findByIdAndRemove(req.params.pet_id, function(err) {
+    //     if (err) {
+    //         res.json({ message: 'error', data: err });
+    //         return;
+    //     }
+
+    //     res.json({ message: 'done', data: {} });
+    // });
 };
 
 module.exports = {
