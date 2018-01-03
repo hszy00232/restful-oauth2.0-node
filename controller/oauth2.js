@@ -5,10 +5,10 @@ var Client = require('../models/client');
 var Token = require('../models/token');
 var Code = require('../models/code');
 
-var config = require('../config/database');
+// var config = require('../config/database');
 
 
-// 创建一个OAuth2.0 server
+// 创建OAuth2.0服务
 var server = oauth2orize.createServer();
 
 // 注册 序列化 serializeClient 方法
@@ -89,7 +89,7 @@ server.exchange(oauth2orize.exchange.code(function(client, code, redirectUri, ca
 }))
 
 
-// 初始化一个新的授权交易，找到要访问用户账号的客户端后渲染授权页面
+// 初始化一个新的授权过程，通过客户端ID查找客户端，找到后返回客户端和重定向URI, 而后渲染授权页面
 exports.authorization = [
     server.authorization(function(clientId, redirectUri, callback) {
         console.log(clientId);
@@ -136,27 +136,3 @@ function uid(len) {
 function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
-// module.exports = {
-//     authorization: [
-//         server.authorization(function(clientId, redirectUri, callback) {
-//             Client.findOne({ id: clientId }, function(err, client) {
-//                 if (err) {
-//                     return callback(err);
-//                 }
-//                 callback(null, client, redirectUri);
-//             });
-//         }),
-//         function(req, res) {
-//             res.render('dialog', {
-//                 transactionID: req.oauth2.transactionID,
-//                 user: req.user,
-//                 client: req.oauth2.client
-//             });
-//         }
-//     ],
-//     decision: [server.decision()],
-//     token: [
-//         server.token(),
-//         server.errorHandler()
-//     ]
-// }

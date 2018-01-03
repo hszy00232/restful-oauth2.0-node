@@ -1,8 +1,9 @@
 var mongoose = require('mongoose');
-var bcrypt = require('bcrypt-nodejs'); // 密码进行hash处理
+var bcrypt = require('bcrypt-nodejs'); // 密码进行加密处理
 
 var Schema = mongoose.Schema;
 
+// 定义用户模式
 var userSchema = new Schema({
     username: { type: String, unique: true, required: true },
     password: { type: String, required: true }
@@ -29,7 +30,7 @@ userSchema.pre('save', function(next) {
 
 });
 
-// 验证password
+// 验证password，用于对api的调用进行认证
 userSchema.methods.verifyPassword = function(password, callback) {
     bcrypt.compare(password, this.password, function(err, match) {
         if (err) {

@@ -1,5 +1,5 @@
 var User = require('../models/user');
-var config = require('../config/database');
+// var config = require('../config/database');
 
 var postUsers = function(req, res) {
     var user = new User({
@@ -40,8 +40,8 @@ var authenticate = function(req, res) {
             user.verifyPassword(req.body.password, function(err, match) {
                 if (match && !err) {
                     res.json({ success: true });
-                    config.userid = user._id;
-                    // return done(null, user)
+                    // config.userid = user._id;
+                    return done(null, user)
 
                 } else {
                     return res.status(403).send({ success: false, msg: 'Authenticaton failed, wrong password.' });

@@ -87,6 +87,7 @@ passport.use(new BearerStrategy(
 // passport使用BasicStrategy认证用户，session为false,passport不存储用户的session,每次请求都需要用户名密码
 module.exports = {
     isAuthenticated: passport.authenticate(['basic', 'bearer'], { session: false }),
+    // isAuthenticated: passport.authenticate(['basic'], { session: false }),
     isClientAuthenticated: passport.authenticate('client-basic', { session: false }),
     isBeareAuthenticated: passport.authenticate('bearer', { session: false })
 };

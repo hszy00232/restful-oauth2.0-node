@@ -12,6 +12,8 @@ var authController = require('./controller/auth');
 var clientController = require('./controller/client');
 var oauth2Controller = require('./controller/oauth2');
 
+
+//连接数据库
 mongoose.connect('mongodb://127.0.0.1:27017/petshot', { useMongoClient: true });
 mongoose.Promise = global.Promise;
 
@@ -39,14 +41,17 @@ app.use(session({
     resave: true //(是否允许)当客户端并行发送多个请求时，其中一个请求在另一个请求结束时对session进行修改覆盖并保存
 }));
 
-// 初始化passport,session存储验证状态
+// 应用中使用passport中间页
 app.use(passport.initialize());
+// 初始化session存储验证状态
 app.use(passport.session());
-var Pet = require('./models/pet');
 
 router.get('/', function(req, res) {
     res.json({ "message": "欢迎访问" })
 })
+
+// 给路由设定根路径为/api
+app.use('/api', router);
 
 // router.get('/callback',function(req,res){
 //     var code = req.query.code;
@@ -58,31 +63,39 @@ router.get('/', function(req, res) {
 //         client: req.oauth2.client
 //     });
 // })
-// 给路由设定根路径为/api
-app.use('/api', router);
 
-router.route('/authenticate')
-    .post(userController.authenticate);
 
-// 使用BasicStrategy 
-
-router.route('/pets')
-    .post(authController.isAuthenticated, petController.postPets)
-    .get(authController.isAuthenticated, petController.getPets);
-
-router.route('/pets/:pet_id')
-    .get(authController.isAuthenticated, petController.getPet)
-    .put(authController.isAuthenticated, petController.updatePet)
-    .delete(authController.isAuthenticated, petController.deletePet);
+// router.route('/authenticate')
+//     .post(userController.authenticate);
 
 // router.route('/pets')
-//     .post(authController.isBeareAuthenticated, petController.postPets)
-//     .get(authController.isBeareAuthenticated, petController.getPets);
+//     .post(petController.postPets)
+//     .get(petController.getPets);
 
 // router.route('/pets/:pet_id')
-//     .get(authController.isBeareAuthenticated, petController.getPet)
+//     .get(petController.getPet)
 //     .put(petController.updatePet)
-//     .delete(authController.isBeareAuthenticated, petController.deletePet);
+//     .delete(petController.deletePet);
+
+// 使用BasicStrategy 
+// router.route('/pets')
+//     .post(authController.isAuthenticated, petController.postPets)
+//     .get(authController.isAuthenticated, petController.getPets);
+
+// router.route('/pets/:pet_id')
+//     .get(authController.isAuthenticated, petController.getPet)
+//     .put(authController.isAuthenticated, petController.updatePet)
+//     .delete(authController.isAuthenticated, petController.deletePet);
+
+// 使用BearerStrategy
+router.route('/pets')
+    .post(authController.isBeareAuthenticated, petController.postPets)
+    .get(authController.isBeareAuthenticated, petController.getPets);
+
+router.route('/pets/:pet_id')
+    .get(authController.isBeareAuthenticated, petController.getPet)
+    .put(petController.updatePet)
+    .delete(authController.isBeareAuthenticated, petController.deletePet);
 
 router.route('/users')
     .post(userController.postUsers)
@@ -92,10 +105,12 @@ router.route('/clients')
     .post(authController.isAuthenticated, clientController.postClients)
     .get(authController.isAuthenticated, clientController.getClients);
 
+// 授权服务
 router.route('/oauth2/authorize')
     .get(authController.isAuthenticated, oauth2Controller.authorization) // 启动授权过程
     .post(authController.isAuthenticated, oauth2Controller.decision); // 用户决定后的调用
 
+// 访问令牌
 router.route('/oauth2/token')
     .post(authController.isClientAuthenticated, oauth2Controller.token); // 得到code后的调用
 
